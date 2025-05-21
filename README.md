@@ -13,6 +13,7 @@ Clicking the button opens a dark-themed modal that matches ChatGPT’s palette; 
 * **Three input fields** – MR title, branch, and free-form text.
 * **Dark-mode styling** – colours pull from ChatGPT CSS custom properties such as `--main-surface-primary` so it automatically adapts to future theme tweaks.
 * **Cross-origin API calls** – uses `GM_xmlhttpRequest`, bypassing browser CORS rules that normally block XMLHttpRequests in the page context.
+* **Magic wand autofill** – click the wand to fetch MR title and branch based on the text field.
 * **State persistence** – modal is created once and merely hidden/shown, so partially-written inputs remain intact between openings.
 * **Minimal dependencies** – pure vanilla JS; only Tampermonkey (or another compatible manager) is required.
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Codex Float Button Sender
 // @namespace    https://chatgpt.com/
-// @version      0.7
+// @version      0.8
 // @description  Floating button: text + MR-title + branch (automatically styled like ChatGPT)
 // @match        https://chatgpt.com/codex/*
 // @grant        GM_addStyle
@@ -95,6 +95,30 @@
     const branchInput = Object.assign(document.createElement('input'), { placeholder:'Branch name…' });
     const textarea    = Object.assign(document.createElement('textarea'), { placeholder:'Enter text…' });
 
+    const magicBtn = document.createElement('button');
+    magicBtn.textContent = '🪄';
+    magicBtn.title = 'Auto-fill';
+
+    magicBtn.addEventListener('click', () => {
+      const text = textarea.value.trim();
+      if (!text) return alert('Text field is empty.');
+
+      GM_xmlhttpRequest({
+        method: 'GET',
+        url: `${API_URL}?text=${encodeURIComponent(text)}`,
+        onload: (resp) => {
+          try {
+            const data = JSON.parse(resp.responseText);
+            if (data.mr_title) titleInput.value = data.mr_title;
+            if (data.branch) branchInput.value = data.branch;
+          } catch (e) {
+            console.error(e); alert('Error parsing response.');
+          }
+        },
+        onerror: (err) => { console.error(err); alert('Error while fetching.'); }
+      });
+    });
+
     const sendBtn = document.createElement('button');
     sendBtn.textContent = 'Send';
 
@@ -124,7 +148,7 @@
       if (e.target === overlay) overlay.style.display = 'none';
     });
 
-    modal.append(titleInput, branchInput, textarea, sendBtn);
+    modal.append(titleInput, branchInput, textarea, magicBtn, sendBtn);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
   };
