@@ -15,6 +15,7 @@ Clicking the button opens a dark-themed modal that matches ChatGPT’s palette; 
 * **Cross-origin API calls** – uses `GM_xmlhttpRequest`, bypassing browser CORS rules that normally block XMLHttpRequests in the page context.
 * **Magic wand autofill** – click the wand to fetch MR title and branch based on the text field.
 * **State persistence** – modal is created once and merely hidden/shown, so partially-written inputs remain intact between openings.
+* **Console logging** – every API request and response is printed to the developer console.
 * **Minimal dependencies** – pure vanilla JS; only Tampermonkey (or another compatible manager) is required.
 
 ---

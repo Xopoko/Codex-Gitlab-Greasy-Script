@@ -110,10 +110,14 @@
       const text = textarea.value.trim();
       if (!text) return alert('Text field is empty.');
 
+      const getUrl = `${API_URL}?text=${encodeURIComponent(text)}`;
+      console.log('GET request:', getUrl);
+
       GM_xmlhttpRequest({
         method: 'GET',
-        url: `${API_URL}?text=${encodeURIComponent(text)}`,
+        url: getUrl,
         onload: (resp) => {
+          console.log('GET response:', resp);
           try {
             const data = JSON.parse(resp.responseText);
             const obj = Array.isArray(data) ? data[0] : data;
@@ -139,12 +143,15 @@
       const branch = branchInput.value.trim();
       if (!text || !title || !branch) return alert('Please fill in all fields.');
 
+      console.log('POST request:', { url: API_URL, data: { text, title, branch } });
+
       GM_xmlhttpRequest({
         method: 'POST',
         url: API_URL,
         headers: { 'Content-Type': 'application/json' },
         data: JSON.stringify({ text, title, branch }),
-        onload: () => {
+        onload: (resp) => {
+          console.log('POST response:', resp);
           textarea.value = titleInput.value = branchInput.value = '';
           overlay.style.display = 'none';
           alert('Data sent!');
