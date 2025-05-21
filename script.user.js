@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Codex Float Button Sender
 // @namespace    https://chatgpt.com/
-// @version      0.10
+// @version      0.11
 // @description  Floating button: text + MR-title + branch (automatically styled like ChatGPT)
 // @match        https://chatgpt.com/codex/*
 // @grant        GM_addStyle
@@ -43,6 +43,7 @@
       display:flex;align-items:center;justify-content:center;
     }
     #codex-modal{
+      position:relative;
       background:var(--main-surface-primary,#343541);
       border-radius:12px;padding:20px;
       width:min(90vw,520px);
@@ -50,6 +51,20 @@
       display:flex;flex-direction:column;gap:12px;
       color:var(--text-primary,#ececf1);font-size:14px;
     }
+
+    /* Loading overlay */
+    #codex-loading{
+      position:absolute;inset:0;z-index:1;display:none;
+      align-items:center;justify-content:center;
+      background:rgba(0,0,0,.5);border-radius:inherit;
+    }
+    #codex-loading::after{
+      content:'';width:32px;height:32px;border-radius:50%;
+      border:3px solid var(--border-medium,#8e8ea0);
+      border-top-color:var(--text-primary,#fff);
+      animation:codex-spin .8s linear infinite;
+    }
+    @keyframes codex-spin{to{transform:rotate(360deg);}}
 
     /* Inputs */
     #codex-modal input,
@@ -106,11 +121,26 @@
     magicBtn.textContent = '🪄';
     magicBtn.title = 'Auto-fill';
 
+    const sendBtn = document.createElement('button');
+    sendBtn.className = 'send-btn';
+    sendBtn.textContent = 'Send';
+
+    const loader = document.createElement('div');
+    loader.id = 'codex-loading';
+
+    const setLoading = (s) => {
+      loader.style.display = s ? 'flex' : 'none';
+      [titleInput, branchInput, textarea, magicBtn, sendBtn].forEach(el => {
+        el.disabled = s;
+      });
+    };
+
     magicBtn.addEventListener('click', () => {
       const text = textarea.value.trim();
       if (!text) return alert('Text field is empty.');
 
       console.log('POST request:', { url: API_URL, text });
+      setLoading(true);
 
       GM_xmlhttpRequest({
         method: 'POST',
@@ -128,14 +158,11 @@
           } catch (e) {
             console.error(e); alert('Error parsing response.');
           }
+          setLoading(false);
         },
-        onerror: (err) => { console.error(err); alert('Error while fetching.'); }
+        onerror: (err) => { console.error(err); alert('Error while fetching.'); setLoading(false); }
       });
     });
-
-    const sendBtn = document.createElement('button');
-    sendBtn.className = 'send-btn';
-    sendBtn.textContent = 'Send';
 
     /* --- Sending --- */
     sendBtn.addEventListener('click', () => {
@@ -145,6 +172,7 @@
       if (!text || !title || !branch) return alert('Please fill in all fields.');
 
       console.log('POST request:', { url: API_URL, data: { text, title, branch } });
+      setLoading(true);
 
       GM_xmlhttpRequest({
         method: 'POST',
@@ -156,8 +184,9 @@
           textarea.value = titleInput.value = branchInput.value = '';
           overlay.style.display = 'none';
           alert('Data sent!');
+          setLoading(false);
         },
-        onerror: (err) => { console.error(err); alert('Error while sending.'); }
+        onerror: (err) => { console.error(err); alert('Error while sending.'); setLoading(false); }
       });
     });
 
@@ -170,7 +199,7 @@
     actions.className = 'codex-actions';
     actions.append(magicBtn, sendBtn);
 
-    modal.append(titleInput, branchInput, textarea, actions);
+    modal.append(titleInput, branchInput, textarea, actions, loader);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
   };
