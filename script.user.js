@@ -110,14 +110,15 @@
       const text = textarea.value.trim();
       if (!text) return alert('Text field is empty.');
 
-      const getUrl = `${API_URL}?text=${encodeURIComponent(text)}`;
-      console.log('GET request:', getUrl);
+      console.log('POST request:', { url: API_URL, text });
 
       GM_xmlhttpRequest({
-        method: 'GET',
-        url: getUrl,
+        method: 'POST',
+        url: API_URL,
+        headers: { 'Content-Type': 'application/json' },
+        data: JSON.stringify({ text }),
         onload: (resp) => {
-          console.log('GET response:', resp);
+          console.log('POST response:', resp);
           try {
             const data = JSON.parse(resp.responseText);
             const obj = Array.isArray(data) ? data[0] : data;
