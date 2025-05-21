@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Codex Float Button Sender
 // @namespace    https://chatgpt.com/
-// @version      0.8
+// @version      0.10
 // @description  Floating button: text + MR-title + branch (automatically styled like ChatGPT)
 // @match        https://chatgpt.com/codex/*
 // @grant        GM_addStyle
@@ -62,9 +62,11 @@
     }
     #codex-modal textarea{height:160px;resize:vertical;}
 
-    /* Send button */
+    /* Actions */
+    #codex-modal .codex-actions{
+      display:flex;justify-content:space-between;gap:12px;margin-top:12px;
+    }
     #codex-modal button{
-      align-self:end;
       background:var(--composer-blue-bg,#10a37f);
       color:#fff;border:none;padding:8px 18px;
       border-radius:8px;font-weight:600;cursor:pointer;
@@ -73,6 +75,10 @@
     #codex-modal button:hover{
       background:var(--composer-blue-hover,#13b491);
     }
+    #codex-modal button.magic-btn{
+      padding:8px;width:40px;flex-shrink:0;
+    }
+    #codex-modal button.send-btn{flex-grow:1;}
   `);
 
   /* --- Create the button --- */
@@ -96,6 +102,7 @@
     const textarea    = Object.assign(document.createElement('textarea'), { placeholder:'Enter text…' });
 
     const magicBtn = document.createElement('button');
+    magicBtn.className = 'magic-btn';
     magicBtn.textContent = '🪄';
     magicBtn.title = 'Auto-fill';
 
@@ -109,8 +116,10 @@
         onload: (resp) => {
           try {
             const data = JSON.parse(resp.responseText);
-            if (data.mr_title) titleInput.value = data.mr_title;
-            if (data.branch) branchInput.value = data.branch;
+            const obj = Array.isArray(data) ? data[0] : data;
+            const out = obj && (obj.output || obj);
+            if (out && out.title) titleInput.value = out.title;
+            if (out && out.branch) branchInput.value = out.branch;
           } catch (e) {
             console.error(e); alert('Error parsing response.');
           }
@@ -120,6 +129,7 @@
     });
 
     const sendBtn = document.createElement('button');
+    sendBtn.className = 'send-btn';
     sendBtn.textContent = 'Send';
 
     /* --- Sending --- */
@@ -148,7 +158,11 @@
       if (e.target === overlay) overlay.style.display = 'none';
     });
 
-    modal.append(titleInput, branchInput, textarea, magicBtn, sendBtn);
+    const actions = document.createElement('div');
+    actions.className = 'codex-actions';
+    actions.append(magicBtn, sendBtn);
+
+    modal.append(titleInput, branchInput, textarea, actions);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
   };
