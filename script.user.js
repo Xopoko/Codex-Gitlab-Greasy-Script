@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Codex Float Button Sender
 // @namespace    https://chatgpt.com/
-// @version      0.11
+// @version      0.12
 // @description  Floating button: text + MR-title + branch (automatically styled like ChatGPT)
 // @match        https://chatgpt.com/codex/*
 // @grant        GM_addStyle
@@ -10,7 +10,8 @@
 
 (() => {
   /* --- SETTINGS --- */
-  const API_URL = 'https://example.com';
+  const API_URL_MAGIC = 'https://example.com/magic';
+  const API_URL_SEND  = 'https://example.com/send';
 
   /* --- STYLES based on ChatGPT design tokens --- */
   GM_addStyle(`
@@ -139,12 +140,12 @@
       const text = textarea.value.trim();
       if (!text) return alert('Text field is empty.');
 
-      console.log('POST request:', { url: API_URL, text });
+      console.log('POST request:', { url: API_URL_MAGIC, text });
       setLoading(true);
 
       GM_xmlhttpRequest({
         method: 'POST',
-        url: API_URL,
+        url: API_URL_MAGIC,
         headers: { 'Content-Type': 'application/json' },
         data: JSON.stringify({ text }),
         onload: (resp) => {
@@ -171,12 +172,12 @@
       const branch = branchInput.value.trim();
       if (!text || !title || !branch) return alert('Please fill in all fields.');
 
-      console.log('POST request:', { url: API_URL, data: { text, title, branch } });
+      console.log('POST request:', { url: API_URL_SEND, data: { text, title, branch } });
       setLoading(true);
 
       GM_xmlhttpRequest({
         method: 'POST',
-        url: API_URL,
+        url: API_URL_SEND,
         headers: { 'Content-Type': 'application/json' },
         data: JSON.stringify({ text, title, branch }),
         onload: (resp) => {

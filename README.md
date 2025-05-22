@@ -3,7 +3,7 @@
 ### Summary
 
 The **Codex Float Button Sender** userscript adds a floating “+” button to every `https://chatgpt.com/codex/*` page.
-Clicking the button opens a dark-themed modal that matches ChatGPT’s palette; users can enter a *Merge Request Title*, *Branch name*, and a *message body*, then send all three fields to the configured webhook via `GM_xmlhttpRequest` (POST). No data are lost when the modal is closed—values persist until the page is reloaded.
+Clicking the button opens a dark-themed modal that matches ChatGPT’s palette; users can enter a *Merge Request Title*, *Branch name*, and a *message body*. The script sends POST requests to separate webhooks for the magic autofill and for the final submission via `GM_xmlhttpRequest`. No data are lost when the modal is closed—values persist until the page is reloaded.
 
 ---
 
@@ -42,9 +42,9 @@ Clicking the button opens a dark-themed modal that matches ChatGPT’s palette; 
 
 ## Customisation
 
-### Changing the webhook
+### Changing the webhooks
 
-Edit the `API_URL` constant near the top of the script.
+Edit the `API_URL_MAGIC` and `API_URL_SEND` constants near the top of the script.
 
 ### Tweaking colours
 
