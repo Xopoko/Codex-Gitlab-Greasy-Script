@@ -1,252 +1,231 @@
 // ==UserScript==
-// @name         Codex Float Button Sender
+// @name         Codex Float Button Sender (Enhanced UI)
 // @namespace    https://chatgpt.com/
-// @version      0.13
-// @description  Floating button: text + MR-title + branch (automatically styled like ChatGPT)
+// @version      0.20
+// @description  Floating button: text + MR-title + branch (ChatGPT-styled, accessible, with toasts/shortcuts)
 // @match        https://chatgpt.com/codex/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 (() => {
-  /* --- SETTINGS --- */
-  const API_URL_MAGIC = 'https://example.com/magic';
-  const API_URL_SEND  = 'https://example.com/send';
-  const API_URL_SYNC  = 'https://example.com/sync';
+  /* ---------------- SETTINGS ---------------- */
+  const API_URL_MAGIC = '';
+  const API_URL_SEND  = '';
+  const API_URL_SYNC  = '';
 
-  /* --- STYLES based on ChatGPT design tokens --- */
+  /* ---------------- STYLES ---------------- */
   GM_addStyle(`
-    /* Floating button */
-    #codex-float-btn{
+    :root{
+      --codex-bg-primary: var(--main-surface-primary,#343541);
+      --codex-bg-secondary: var(--main-surface-secondary,#40414f);
+      --codex-bg-accent: var(--composer-blue-bg,#10a37f);
+      --codex-bg-accent-hover: var(--composer-blue-hover,#13b491);
+      --codex-text-primary: var(--text-primary,#ececf1);
+      --codex-border: var(--border-medium,#8e8ea0);
+    }
+
+    /* Floating FAB */
+    #codex-fab{
       position:fixed;bottom:24px;right:24px;z-index:9999;
-      width:56px;height:56px;border-radius:50%;
-      background:var(--main-surface-secondary,#343541);
-      border:2px solid var(--border-medium,#8e8ea0);
-      cursor:pointer;
-      box-shadow:0 4px 12px rgba(0,0,0,.5);
-      transition:background .25s,box-shadow .25s;
+      width:56px;height:56px;border-radius:50%;display:grid;place-items:center;
+      background:var(--codex-bg-secondary);border:2px solid var(--codex-border);
+      cursor:pointer;user-select:none;
+      box-shadow:0 4px 12px rgba(0,0,0,.5);transition:.25s background, .25s box-shadow, .25s transform;
     }
-    #codex-float-btn:hover{
-      background:var(--surface-hover,#40414f);
-      box-shadow:0 6px 18px rgba(0,0,0,.8);
-    }
-    #codex-float-btn::before,#codex-float-btn::after{
-      content:'';position:absolute;left:50%;top:50%;
-      background:var(--text-primary,#fff);
-      transform:translate(-50%,-50%);
-    }
-    #codex-float-btn::before{width:22px;height:2px;}
-    #codex-float-btn::after {width:2px;height:22px;}
+    #codex-fab:hover{background:var(--codex-bg-primary);box-shadow:0 6px 18px rgba(0,0,0,.8);transform:translateY(-2px)}
+    #codex-fab svg{fill:var(--codex-text-primary);width:24px;height:24px}
 
-    /* Overlay and modal */
-    #codex-modal-overlay{
-      position:fixed;inset:0;z-index:9998;
-      background:rgba(0,0,0,.6);
-      display:flex;align-items:center;justify-content:center;
-    }
-    #codex-modal{
-      position:relative;
-      background:var(--main-surface-primary,#343541);
-      border-radius:12px;padding:20px;
-      width:min(90vw,520px);
-      box-shadow:0 8px 24px rgba(0,0,0,.9);
-      display:flex;flex-direction:column;gap:12px;
-      color:var(--text-primary,#ececf1);font-size:14px;
-    }
+    /* Overlay */
+    #codex-overlay{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:.25s opacity;}
+    #codex-overlay.open{opacity:1;pointer-events:auto}
 
-    /* Loading overlay */
-    #codex-loading{
-      position:absolute;inset:0;z-index:1;display:none;
-      align-items:center;justify-content:center;
-      background:rgba(0,0,0,.5);border-radius:inherit;
-    }
-    #codex-loading::after{
-      content:'';width:32px;height:32px;border-radius:50%;
-      border:3px solid var(--border-medium,#8e8ea0);
-      border-top-color:var(--text-primary,#fff);
-      animation:codex-spin .8s linear infinite;
-    }
-    @keyframes codex-spin{to{transform:rotate(360deg);}}
+    /* Modal */
+    #codex-modal{background:var(--codex-bg-primary);border-radius:12px;padding:24px 20px;width:min(92vw,520px);box-shadow:0 8px 24px rgba(0,0,0,.9);display:flex;flex-direction:column;gap:14px;position:relative;transform:scale(.96);transition:.25s transform;}
+    #codex-overlay.open #codex-modal{transform:scale(1)}
 
-    /* Inputs */
-    #codex-modal input,
-    #codex-modal textarea{
-      width:100%;padding:8px;
-      background:var(--main-surface-secondary,#40414f);
-      color:var(--text-primary,#fff);
-      border:1px solid var(--border-medium,#555);
-      border-radius:6px;font:inherit;
-    }
-    #codex-modal textarea{height:160px;resize:vertical;}
+    #codex-close{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--codex-text-primary);font-size:20px;cursor:pointer;line-height:1;}
+    #codex-close:hover{color:#fff}
+
+    label.codex-field{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--codex-text-primary)}
+    label.codex-field input,
+    label.codex-field textarea{background:var(--codex-bg-secondary);border:1px solid var(--codex-border);border-radius:6px;padding:10px 12px;font:inherit;color:var(--codex-text-primary);}
+    label.codex-field input:focus,
+    label.codex-field textarea:focus{outline:none;border-color:var(--codex-bg-accent);box-shadow:0 0 0 2px rgba(16,163,127,.35)}
+    textarea#codex-text{height:160px;resize:vertical}
 
     /* Actions */
-    #codex-modal .codex-actions{
-      display:flex;justify-content:space-between;gap:12px;margin-top:12px;
-    }
-    #codex-modal button{
-      background:var(--composer-blue-bg,#10a37f);
-      color:#fff;border:none;padding:8px 18px;
-      border-radius:8px;font-weight:600;cursor:pointer;
-      transition:background .25s;
-    }
-    #codex-modal button:hover{
-      background:var(--composer-blue-hover,#13b491);
-    }
-    #codex-modal button.magic-btn{
-      padding:8px;width:40px;flex-shrink:0;
-    }
-    #codex-modal button.send-btn{flex-grow:1;}
-    #codex-modal button.sync-btn{
-      padding:8px;width:40px;flex-shrink:0;
-    }
-    #codex-sync-status{
-      margin-left:8px;align-self:center;font-weight:600;
-    }
+    .codex-actions{display:flex;gap:12px;margin-top:6px}
+    .codex-btn{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;border:none;cursor:pointer;padding:10px 18px;border-radius:8px;transition:.25s background;user-select:none}
+    .codex-primary{background:var(--codex-bg-accent);color:#fff;flex:1}
+    .codex-primary:disabled{opacity:.5;cursor:not-allowed}
+    .codex-primary:hover:not(:disabled){background:var(--codex-bg-accent-hover)}
+    .codex-icon-btn{background:var(--codex-bg-secondary);color:var(--codex-text-primary);width:44px}
+    .codex-icon-btn:hover{background:var(--codex-bg-primary)}
+
+    /* Loading */
+    #codex-loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;border-radius:inherit;background:rgba(0,0,0,.45);}
+    #codex-loading.visible{display:flex}
+    #codex-loading::after{content:'';width:32px;height:32px;border-radius:50%;border:3px solid var(--codex-border);border-top-color:#fff;animation:codex-spin .8s linear infinite}
+    @keyframes codex-spin{to{transform:rotate(360deg);}}
+
+    /* Toast */
+    #codex-toast{position:fixed;bottom:32px;right:32px;z-index:10000;display:none;padding:12px 18px;border-radius:8px;font-weight:600;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+    #codex-toast.success{background:var(--codex-bg-accent)}
+    #codex-toast.error{background:#d93025}
   `);
 
-  /* --- Create the button --- */
-  const btn = document.createElement('button');
-  btn.id = 'codex-float-btn';
-  btn.title = 'Send data…';
-  document.body.appendChild(btn);
+  /* ---------------- HELPERS ---------------- */
+  const $ = sel => document.querySelector(sel);
+  const showToast = (msg, type='success', ms=3000) => {
+    const t = $('#codex-toast');
+    t.textContent = msg; t.className = type; t.style.display='block';
+    setTimeout(()=>t.style.display='none', ms);
+  };
 
-  /* --- A single overlay/modal kept hidden until first open --- */
+  /* ---------------- FAB ---------------- */
+  const fab = document.createElement('button');
+  fab.id = 'codex-fab';
+  fab.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  fab.title = 'Send MR data…';
+  document.body.append(fab);
+
+  /* ---------------- OVERLAY/MODAL (built once) ---------------- */
   let overlay = null;
-
-  const buildModal = () => {
+  const buildUI = () => {
     overlay = document.createElement('div');
-    overlay.id = 'codex-modal-overlay';
-    overlay.style.display = 'none';
-    const modal = document.createElement('div');
-    modal.id = 'codex-modal';
+    overlay.id = 'codex-overlay';
 
-    const titleInput  = Object.assign(document.createElement('input'), { placeholder:'Merge Request Title…' });
-    const branchInput = Object.assign(document.createElement('input'), { placeholder:'Branch name…' });
-    const textarea    = Object.assign(document.createElement('textarea'), { placeholder:'Enter text…' });
+    overlay.innerHTML = `
+      <div id="codex-modal" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+        <button id="codex-close" title="Close (Esc)">×</button>
+        <h2 id="codex-title" style="margin:0 0 6px;font-size:18px;color:var(--codex-text-primary);">Send Merge Request</h2>
+        <label class="codex-field">Merge Request Title
+          <input id="codex-title-input" type="text" placeholder="Concise but descriptive…" autocomplete="off" required />
+        </label>
+        <label class="codex-field">Branch Name
+          <input id="codex-branch-input" type="text" placeholder="feature/my-awesome-branch" autocomplete="off" required />
+        </label>
+        <label class="codex-field">Description
+          <textarea id="codex-text" placeholder="Enter text…"></textarea>
+        </label>
+        <div class="codex-actions">
+          <button id="codex-magic" class="codex-btn codex-icon-btn" title="Auto-fill (Ctrl+M)">🪄</button>
+          <button id="codex-send"  class="codex-btn codex-primary" disabled>Send (Ctrl+Enter)</button>
+          <button id="codex-sync"  class="codex-btn codex-icon-btn" title="Sync (Ctrl+Y)">🔄</button>
+        </div>
+        <div id="codex-loading"></div>
+      </div>`;
 
-    const magicBtn = document.createElement('button');
-    magicBtn.className = 'magic-btn';
-    magicBtn.textContent = '🪄';
-    magicBtn.title = 'Auto-fill';
+    document.body.append(overlay);
+    // toast
+    const toast = document.createElement('div');
+    toast.id = 'codex-toast';
+    document.body.append(toast);
 
-    const sendBtn = document.createElement('button');
-    sendBtn.className = 'send-btn';
-    sendBtn.textContent = 'Send';
+    /* ----- ELEMENTS ----- */
+    const titleIn  = $('#codex-title-input');
+    const branchIn = $('#codex-branch-input');
+    const textArea = $('#codex-text');
+    const magicBtn = $('#codex-magic');
+    const sendBtn  = $('#codex-send');
+    const syncBtn  = $('#codex-sync');
+    const loading  = $('#codex-loading');
 
-    const syncBtn = document.createElement('button');
-    syncBtn.className = 'sync-btn';
-    syncBtn.textContent = '🔄';
-    syncBtn.title = 'Sync';
+    /* ----- STATE HANDLERS ----- */
+    const setLoading = s => {
+      loading.classList.toggle('visible', s);
+      [titleIn, branchIn, textArea, magicBtn, sendBtn, syncBtn].forEach(el=>el.disabled=s);
+    };
+    const validate = () => {
+      const ok = titleIn.value.trim() && branchIn.value.trim() && textArea.value.trim();
+      sendBtn.disabled = !ok;
+    };
 
-    const syncStatus = document.createElement('span');
-    syncStatus.id = 'codex-sync-status';
+    [titleIn, branchIn, textArea].forEach(el=>el.addEventListener('input', validate));
 
-    const loader = document.createElement('div');
-    loader.id = 'codex-loading';
+    /* ----- API CALL HELPERS ----- */
+    const postJSON = (url, payload, cb) => {
+      GM_xmlhttpRequest({
+        method:'POST', url, headers:{'Content-Type':'application/json'}, data:JSON.stringify(payload),
+        onload: resp=>cb(null,resp), onerror: err=>cb(err)
+      });
+    };
+    const getJSON = (url, cb) => {
+      GM_xmlhttpRequest({method:'GET', url, onload: resp=>cb(null,resp), onerror: err=>cb(err)});
+    };
 
-    const setLoading = (s) => {
-      loader.style.display = s ? 'flex' : 'none';
-      [titleInput, branchInput, textarea, magicBtn, sendBtn, syncBtn].forEach(el => {
-        el.disabled = s;
+    /* ----- MAGIC ----- */
+    magicBtn.addEventListener('click', () => {
+      if(!textArea.value.trim()) return showToast('Description is empty.','error');
+      setLoading(true);
+      postJSON(API_URL_MAGIC,{text:textArea.value.trim()}, (err,resp)=>{
+        setLoading(false);
+        if(err) return showToast('Error fetching magic ✨','error');
+        try{
+          const data = JSON.parse(resp.responseText);
+          const out = (Array.isArray(data)?data[0]:data) || {};
+          if(out.title)  titleIn.value  = out.title;
+          if(out.branch) branchIn.value = out.branch;
+          validate();
+        }catch(e){
+          console.error(e); showToast('Parse error','error');
+        }
+      });
+    });
+
+    /* ----- SEND ----- */
+    const doSend = () => {
+      setLoading(true);
+      postJSON(API_URL_SEND,{text:textArea.value.trim(), title:titleIn.value.trim(), branch:branchIn.value.trim()}, (err,resp)=>{
+        setLoading(false);
+        if(err){ showToast('Network error','error'); return; }
+        titleIn.value = branchIn.value = textArea.value = '';
+        validate();
+        close();
+        showToast('Data sent!','success');
       });
     };
 
-    magicBtn.addEventListener('click', () => {
-      const text = textarea.value.trim();
-      if (!text) return alert('Text field is empty.');
-
-      console.log('POST request:', { url: API_URL_MAGIC, text });
-      setLoading(true);
-
-      GM_xmlhttpRequest({
-        method: 'POST',
-        url: API_URL_MAGIC,
-        headers: { 'Content-Type': 'application/json' },
-        data: JSON.stringify({ text }),
-        onload: (resp) => {
-          console.log('POST response:', resp);
-          try {
-            const data = JSON.parse(resp.responseText);
-            const obj = Array.isArray(data) ? data[0] : data;
-            const out = obj && (obj.output || obj);
-            if (out && out.title) titleInput.value = out.title;
-            if (out && out.branch) branchInput.value = out.branch;
-          } catch (e) {
-            console.error(e); alert('Error parsing response.');
-          }
-          setLoading(false);
-        },
-        onerror: (err) => { console.error(err); alert('Error while fetching.'); setLoading(false); }
-      });
-    });
-
-    /* --- Sending --- */
-    sendBtn.addEventListener('click', () => {
-      const text   = textarea.value.trim();
-      const title  = titleInput.value.trim();
-      const branch = branchInput.value.trim();
-      if (!text || !title || !branch) return alert('Please fill in all fields.');
-
-      console.log('POST request:', { url: API_URL_SEND, data: { text, title, branch } });
-      setLoading(true);
-
-      GM_xmlhttpRequest({
-        method: 'POST',
-        url: API_URL_SEND,
-        headers: { 'Content-Type': 'application/json' },
-        data: JSON.stringify({ text, title, branch }),
-        onload: (resp) => {
-          console.log('POST response:', resp);
-          textarea.value = titleInput.value = branchInput.value = '';
-          overlay.style.display = 'none';
-          alert('Data sent!');
-          setLoading(false);
-        },
-        onerror: (err) => { console.error(err); alert('Error while sending.'); setLoading(false); }
-      });
-    });
-
-    /* --- Syncing --- */
+    /* ----- SYNC ----- */
     syncBtn.addEventListener('click', () => {
-      syncStatus.textContent = '';
-      console.log('GET request:', { url: API_URL_SYNC });
       setLoading(true);
-
-      GM_xmlhttpRequest({
-        method: 'GET',
-        url: API_URL_SYNC,
-        onload: (resp) => {
-          console.log('GET response:', resp);
-          try {
-            const data = JSON.parse(resp.responseText);
-            syncStatus.textContent = data.status === 'success' ? 'Success' : 'Failure';
-          } catch (e) {
-            console.error(e);
-            syncStatus.textContent = 'Failure';
-          }
-          setLoading(false);
-        },
-        onerror: (err) => { console.error(err); syncStatus.textContent = 'Failure'; setLoading(false); }
+      getJSON(API_URL_SYNC,(err,resp)=>{
+        setLoading(false);
+        if(err) return showToast('Sync failed','error');
+        try{
+          const data = JSON.parse(resp.responseText);
+          showToast(data.status==='success'?'Sync success':'Sync failure', data.status==='success'?'success':'error');
+        }catch(e){ showToast('Sync parse error','error'); }
       });
     });
 
-    /* --- Close (but do not remove) to preserve data --- */
-    overlay.addEventListener('click', e => {
-      if (e.target === overlay) overlay.style.display = 'none';
-    });
+    /* ----- SHORTCUTS ----- */
+    const keyHandler = e => {
+      if(e.key==='Escape'){ close(); return; }
+      if(e.ctrlKey && e.key==='Enter'){ if(!sendBtn.disabled) doSend(); }
+      if(e.ctrlKey && (e.key==='m'||e.key==='M')) magicBtn.click();
+      if(e.ctrlKey && (e.key==='y'||e.key==='Y')) syncBtn.click();
+    };
 
-    const actions = document.createElement('div');
-    actions.className = 'codex-actions';
-    actions.append(magicBtn, sendBtn, syncBtn, syncStatus);
+    /* ----- OPEN / CLOSE ----- */
+    const open = () => {
+      overlay.classList.add('open');
+      titleIn.focus();
+      document.addEventListener('keydown', keyHandler);
+    };
+    const close = () => {
+      overlay.classList.remove('open');
+      document.removeEventListener('keydown', keyHandler);
+    };
 
-    modal.append(titleInput, branchInput, textarea, actions, loader);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
+    $('#codex-close').addEventListener('click', close);
+    overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); });
+    sendBtn.addEventListener('click', doSend);
+
+    /* ---- expose open() for FAB ---- */
+    fab.addEventListener('click', open);
   };
 
-  /* --- Button handler --- */
-  btn.addEventListener('click', () => {
-    if (!overlay) buildModal();
-    overlay.style.display = 'flex';
-  });
+  fab.addEventListener('click', () => { if(!overlay) buildUI(); });
 })();
