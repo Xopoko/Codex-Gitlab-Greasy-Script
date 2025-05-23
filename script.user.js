@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Codex Float Button Sender
 // @namespace    https://chatgpt.com/
-// @version      0.12
+// @version      0.13
 // @description  Floating button: text + MR-title + branch (automatically styled like ChatGPT)
 // @match        https://chatgpt.com/codex/*
 // @grant        GM_addStyle
@@ -12,6 +12,7 @@
   /* --- SETTINGS --- */
   const API_URL_MAGIC = 'https://example.com/magic';
   const API_URL_SEND  = 'https://example.com/send';
+  const API_URL_SYNC  = 'https://example.com/sync';
 
   /* --- STYLES based on ChatGPT design tokens --- */
   GM_addStyle(`
@@ -95,6 +96,12 @@
       padding:8px;width:40px;flex-shrink:0;
     }
     #codex-modal button.send-btn{flex-grow:1;}
+    #codex-modal button.sync-btn{
+      padding:8px;width:40px;flex-shrink:0;
+    }
+    #codex-sync-status{
+      margin-left:8px;align-self:center;font-weight:600;
+    }
   `);
 
   /* --- Create the button --- */
@@ -126,12 +133,20 @@
     sendBtn.className = 'send-btn';
     sendBtn.textContent = 'Send';
 
+    const syncBtn = document.createElement('button');
+    syncBtn.className = 'sync-btn';
+    syncBtn.textContent = '🔄';
+    syncBtn.title = 'Sync';
+
+    const syncStatus = document.createElement('span');
+    syncStatus.id = 'codex-sync-status';
+
     const loader = document.createElement('div');
     loader.id = 'codex-loading';
 
     const setLoading = (s) => {
       loader.style.display = s ? 'flex' : 'none';
-      [titleInput, branchInput, textarea, magicBtn, sendBtn].forEach(el => {
+      [titleInput, branchInput, textarea, magicBtn, sendBtn, syncBtn].forEach(el => {
         el.disabled = s;
       });
     };
@@ -191,6 +206,30 @@
       });
     });
 
+    /* --- Syncing --- */
+    syncBtn.addEventListener('click', () => {
+      syncStatus.textContent = '';
+      console.log('GET request:', { url: API_URL_SYNC });
+      setLoading(true);
+
+      GM_xmlhttpRequest({
+        method: 'GET',
+        url: API_URL_SYNC,
+        onload: (resp) => {
+          console.log('GET response:', resp);
+          try {
+            const data = JSON.parse(resp.responseText);
+            syncStatus.textContent = data.status === 'success' ? 'Success' : 'Failure';
+          } catch (e) {
+            console.error(e);
+            syncStatus.textContent = 'Failure';
+          }
+          setLoading(false);
+        },
+        onerror: (err) => { console.error(err); syncStatus.textContent = 'Failure'; setLoading(false); }
+      });
+    });
+
     /* --- Close (but do not remove) to preserve data --- */
     overlay.addEventListener('click', e => {
       if (e.target === overlay) overlay.style.display = 'none';
@@ -198,7 +237,7 @@
 
     const actions = document.createElement('div');
     actions.className = 'codex-actions';
-    actions.append(magicBtn, sendBtn);
+    actions.append(magicBtn, sendBtn, syncBtn, syncStatus);
 
     modal.append(titleInput, branchInput, textarea, actions, loader);
     overlay.appendChild(modal);
