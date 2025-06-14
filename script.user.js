@@ -35,7 +35,7 @@
       box-shadow:0 4px 12px rgba(0,0,0,.5);transition:.25s background, .25s box-shadow, .25s transform;
     }
     #codex-fab:hover{background:var(--codex-bg-primary);box-shadow:0 6px 18px rgba(0,0,0,.8);transform:translateY(-2px)}
-    #codex-fab svg{fill:var(--codex-text-primary);width:24px;height:24px}
+    #codex-fab svg{width:24px;height:24px}
 
     /* Settings FAB */
     #codex-settings-btn{position:fixed;bottom:90px;right:24px;z-index:9999;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--codex-bg-secondary);border:2px solid var(--codex-border);cursor:pointer;user-select:none;box-shadow:0 4px 12px rgba(0,0,0,.5);transition:.25s background,.25s box-shadow,.25s transform}
@@ -102,7 +102,18 @@
   /* ---------------- FAB ---------------- */
   const fab = document.createElement('button');
   fab.id = 'codex-fab';
-  fab.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  fab.innerHTML = `
+    <svg width="768" height="768" viewBox="0 0 768 768" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="184.245" cy="182.703" rx="100.237" ry="100.203" fill="#0ABE98"/>
+      <ellipse cx="184.237" cy="382.494" rx="100.237" ry="100.203" fill="#079270"/>
+      <ellipse cx="184.237" cy="582.282" rx="100.237" ry="100.203" fill="#046A51"/>
+      <ellipse cx="383.999" cy="184.207" rx="100.237" ry="100.203" fill="#28F3C8"/>
+      <ellipse cx="383.999" cy="383.994" rx="100.237" ry="100.203" fill="#0ABE98"/>
+      <ellipse cx="383.999" cy="583.79" rx="100.237" ry="100.203" fill="#079270"/>
+      <ellipse cx="583.762" cy="185.715" rx="100.237" ry="100.203" fill="#7DFFE0"/>
+      <ellipse cx="583.762" cy="385.502" rx="100.237" ry="100.203" fill="#28F3C8"/>
+      <ellipse cx="583.762" cy="585.298" rx="100.237" ry="100.203" fill="#0ABE98"/>
+    </svg>`;
   fab.title = 'Send MR data…';
   document.body.append(fab);
 
