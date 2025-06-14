@@ -10,7 +10,6 @@
 
 (() => {
   /* ---------------- SETTINGS ---------------- */
-  const API_URL_MAGIC = '';
   const API_URL_SEND  = '';
   const API_URL_SYNC  = '';
 
@@ -110,7 +109,6 @@
           <textarea id="codex-text" placeholder="Enter text…"></textarea>
         </label>
         <div class="codex-actions">
-          <button id="codex-magic" class="codex-btn codex-icon-btn" title="Auto-fill (Ctrl+M)">🪄</button>
           <button id="codex-send"  class="codex-btn codex-primary" disabled>Send (Ctrl+Enter)</button>
           <button id="codex-sync"  class="codex-btn codex-icon-btn" title="Sync (Ctrl+Y)">🔄</button>
         </div>
@@ -127,7 +125,6 @@
     const titleIn  = $('#codex-title-input');
     const branchIn = $('#codex-branch-input');
     const textArea = $('#codex-text');
-    const magicBtn = $('#codex-magic');
     const sendBtn  = $('#codex-send');
     const syncBtn  = $('#codex-sync');
     const loading  = $('#codex-loading');
@@ -135,7 +132,7 @@
     /* ----- STATE HANDLERS ----- */
     const setLoading = s => {
       loading.classList.toggle('visible', s);
-      [titleIn, branchIn, textArea, magicBtn, sendBtn, syncBtn].forEach(el=>el.disabled=s);
+      [titleIn, branchIn, textArea, sendBtn, syncBtn].forEach(el=>el.disabled=s);
     };
     const validate = () => {
       const ok = titleIn.value.trim() && branchIn.value.trim() && textArea.value.trim();
@@ -155,24 +152,6 @@
       GM_xmlhttpRequest({method:'GET', url, onload: resp=>cb(null,resp), onerror: err=>cb(err)});
     };
 
-    /* ----- MAGIC ----- */
-    magicBtn.addEventListener('click', () => {
-      if(!textArea.value.trim()) return showToast('Description is empty.','error');
-      setLoading(true);
-      postJSON(API_URL_MAGIC,{text:textArea.value.trim()}, (err,resp)=>{
-        setLoading(false);
-        if(err) return showToast('Error fetching magic ✨','error');
-        try{
-          const data = JSON.parse(resp.responseText);
-          const out = (Array.isArray(data)?data[0]:data).output || {};
-          if(out.title)  titleIn.value  = out.title;
-          if(out.branch) branchIn.value = out.branch;
-          validate();
-        }catch(e){
-          console.error(e); showToast('Parse error','error');
-        }
-      });
-    });
 
     /* ----- SEND ----- */
     const doSend = () => {
@@ -204,7 +183,6 @@
     const keyHandler = e => {
       if(e.key==='Escape'){ close(); return; }
       if(e.ctrlKey && e.key==='Enter'){ if(!sendBtn.disabled) doSend(); }
-      if(e.ctrlKey && (e.key==='m'||e.key==='M')) magicBtn.click();
       if(e.ctrlKey && (e.key==='y'||e.key==='Y')) syncBtn.click();
     };
 
