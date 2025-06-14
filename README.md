@@ -3,7 +3,7 @@
 ### Summary
 
 The **Codex Float Button Sender** userscript adds a floating “+” button to every `https://chatgpt.com/codex/*` page.
-Clicking the button opens a dark-themed modal that matches ChatGPT’s palette; users can enter a *Merge Request Title*, *Branch name*, and a *message body*. The script sends POST requests to separate webhooks for the magic autofill and for the final submission via `GM_xmlhttpRequest`. No data are lost when the modal is closed—values persist until the page is reloaded.
+Clicking the button opens a dark-themed modal that matches ChatGPT’s palette; users can enter a *Merge Request Title*, *Branch name*, and a *message body*. The script sends POST requests via `GM_xmlhttpRequest`; no data are lost when the modal is closed—values persist until the page is reloaded.
 
 ---
 
@@ -13,7 +13,6 @@ Clicking the button opens a dark-themed modal that matches ChatGPT’s palette; 
 * **Three input fields** – MR title, branch, and free-form text.
 * **Dark-mode styling** – colours pull from ChatGPT CSS custom properties such as `--main-surface-primary` so it automatically adapts to future theme tweaks.
 * **Cross-origin API calls** – uses `GM_xmlhttpRequest`, bypassing browser CORS rules that normally block XMLHttpRequests in the page context.
-* **Magic wand autofill** – click the wand to fetch MR title and branch based on the text field.
 * **Loading overlay** – a spinner blocks the modal during requests so you can't submit twice.
 * **State persistence** – modal is created once and merely hidden/shown, so partially-written inputs remain intact between openings.
 * **Console logging** – every API request and response is printed to the developer console.
@@ -44,7 +43,7 @@ Clicking the button opens a dark-themed modal that matches ChatGPT’s palette; 
 
 ### Changing the webhooks
 
-Edit the `API_URL_MAGIC` and `API_URL_SEND` constants near the top of the script.
+Edit the `API_URL_SEND` constant near the top of the script.
 
 ### Tweaking colours
 
