@@ -37,10 +37,6 @@
     #codex-fab:hover{background:var(--codex-bg-primary);box-shadow:0 6px 18px rgba(0,0,0,.8);transform:translateY(-2px)}
     #codex-fab svg{width:24px;height:24px}
 
-    /* Settings FAB */
-    #codex-settings-btn{position:fixed;bottom:90px;right:24px;z-index:9999;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--codex-bg-secondary);border:2px solid var(--codex-border);cursor:pointer;user-select:none;box-shadow:0 4px 12px rgba(0,0,0,.5);transition:.25s background,.25s box-shadow,.25s transform}
-    #codex-settings-btn:hover{background:var(--codex-bg-primary);box-shadow:0 6px 18px rgba(0,0,0,.8);transform:translateY(-2px)}
-    #codex-settings-btn svg{fill:var(--codex-text-primary);width:20px;height:20px}
 
     /* Overlay */
     #codex-overlay{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:.25s opacity;}
@@ -117,14 +113,11 @@
   fab.title = 'Send MR data…';
   document.body.append(fab);
 
-  const settingsBtn = document.createElement('button');
-  settingsBtn.id = 'codex-settings-btn';
-  settingsBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h.09A1.65 1.65 0 009 5.6V5a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h.09a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.09a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
-  settingsBtn.title = 'Settings';
-  document.body.append(settingsBtn);
 
   /* ---------------- OVERLAY/MODAL (built once) ---------------- */
   let overlay = null;
+  let settingsBtn;
+  let openSettings;
   let settingsOverlay = null;
   const buildUI = () => {
     overlay = document.createElement('div');
@@ -146,6 +139,9 @@
         <div class="codex-actions">
           <button id="codex-send"  class="codex-btn codex-primary" disabled>Send (Ctrl+Enter)</button>
           <button id="codex-sync"  class="codex-btn codex-icon-btn" title="Sync (Ctrl+Y)">🔄</button>
+          <button id="codex-settings-btn" class="codex-btn codex-icon-btn" title="Settings">
+            <svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h.09A1.65 1.65 0 009 5.6V5a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h.09a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.09a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </button>
         </div>
         <div id="codex-loading"></div>
       </div>`;
@@ -162,12 +158,13 @@
     const textArea = $('#codex-text');
     const sendBtn  = $('#codex-send');
     const syncBtn  = $('#codex-sync');
+      settingsBtn = $("#codex-settings-btn");
     const loading  = $('#codex-loading');
 
     /* ----- STATE HANDLERS ----- */
     const setLoading = s => {
       loading.classList.toggle('visible', s);
-      [titleIn, branchIn, textArea, sendBtn, syncBtn].forEach(el=>el.disabled=s);
+      [titleIn, branchIn, textArea, sendBtn, syncBtn, settingsBtn].forEach(el=>el.disabled=s);
     };
     const validate = () => {
       const ok = titleIn.value.trim() && branchIn.value.trim() && textArea.value.trim();
@@ -235,6 +232,10 @@
     $('#codex-close').addEventListener('click', close);
     overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); });
     sendBtn.addEventListener('click', doSend);
+      settingsBtn.addEventListener("click", () => {
+        if(!settingsOverlay) buildSettingsUI();
+        openSettings();
+      });
 
     /* ---- expose open() for FAB ---- */
     fab.addEventListener('click', open);
@@ -281,9 +282,8 @@
       close();
     });
 
-    settingsBtn.addEventListener('click', open);
+    openSettings = open;
   };
 
   fab.addEventListener('click', () => { if(!overlay) buildUI(); });
-  settingsBtn.addEventListener('click', () => { if(!settingsOverlay) buildSettingsUI(); });
 })();
