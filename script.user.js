@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Codex Float Button Sender (Enhanced UI)
 // @namespace    https://chatgpt.com/
-// @version      0.21
+// @version      0.22
 // @description  Floating button: text + MR-title + branch (ChatGPT-styled, accessible, with toasts/shortcuts)
 // @match        https://chatgpt.com/codex/*
 // @grant        GM_addStyle
