@@ -76,6 +76,14 @@ If OpenAI updates its theme tokens you normally don’t need to touch the script
 ## Contributing
 
 Pull requests are welcome! Please lint with `eslint` and test in both light & dark themes before submitting. Refer to GitHub’s guidelines for userscript READMEs for formatting conventions.
+## Running tests
+
+Run the built-in Node test suite:
+
+```bash
+npm test
+```
+
 
 ---
 

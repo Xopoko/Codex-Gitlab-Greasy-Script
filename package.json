@@ -1,0 +1,8 @@
+{
+  "name": "codex-gitlab-greasy-script",
+  "version": "1.0.0",
+  "description": "Testing utilities for Codex Gitlab Greasy Script",
+  "scripts": {
+    "test": "node --test"
+  }
+}
