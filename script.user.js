@@ -6,6 +6,8 @@
 // @match        https://chatgpt.com/codex/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
+// @grant        GM_getValue
+// @grant        GM_setValue
 // ==/UserScript==
 
 (() => {
@@ -35,13 +37,25 @@
     #codex-fab:hover{background:var(--codex-bg-primary);box-shadow:0 6px 18px rgba(0,0,0,.8);transform:translateY(-2px)}
     #codex-fab svg{fill:var(--codex-text-primary);width:24px;height:24px}
 
+    /* Settings FAB */
+    #codex-settings-btn{position:fixed;bottom:90px;right:24px;z-index:9999;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--codex-bg-secondary);border:2px solid var(--codex-border);cursor:pointer;user-select:none;box-shadow:0 4px 12px rgba(0,0,0,.5);transition:.25s background,.25s box-shadow,.25s transform}
+    #codex-settings-btn:hover{background:var(--codex-bg-primary);box-shadow:0 6px 18px rgba(0,0,0,.8);transform:translateY(-2px)}
+    #codex-settings-btn svg{fill:var(--codex-text-primary);width:20px;height:20px}
+
     /* Overlay */
     #codex-overlay{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:.25s opacity;}
     #codex-overlay.open{opacity:1;pointer-events:auto}
 
+    /* Settings Overlay */
+    #codex-settings-overlay{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:.25s opacity;}
+    #codex-settings-overlay.open{opacity:1;pointer-events:auto}
+
     /* Modal */
     #codex-modal{background:var(--codex-bg-primary);border-radius:12px;padding:24px 20px;width:min(92vw,520px);box-shadow:0 8px 24px rgba(0,0,0,.9);display:flex;flex-direction:column;gap:14px;position:relative;transform:scale(.96);transition:.25s transform;}
     #codex-overlay.open #codex-modal{transform:scale(1)}
+
+    #codex-settings-modal{background:var(--codex-bg-primary);border-radius:12px;padding:24px 20px;width:min(92vw,420px);box-shadow:0 8px 24px rgba(0,0,0,.9);display:flex;flex-direction:column;gap:14px;position:relative;transform:scale(.96);transition:.25s transform;}
+    #codex-settings-overlay.open #codex-settings-modal{transform:scale(1)}
 
     #codex-close{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--codex-text-primary);font-size:20px;cursor:pointer;line-height:1;}
     #codex-close:hover{color:#fff}
@@ -72,6 +86,9 @@
     #codex-toast{position:fixed;bottom:32px;right:32px;z-index:10000;display:none;padding:12px 18px;border-radius:8px;font-weight:600;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.5)}
     #codex-toast.success{background:var(--codex-bg-accent)}
     #codex-toast.error{background:#d93025}
+
+    #codex-token-hint{color:#fff;font-size:12px;text-decoration:none}
+    #codex-token-hint:hover{text-decoration:underline}
   `);
 
   /* ---------------- HELPERS ---------------- */
@@ -89,8 +106,15 @@
   fab.title = 'Send MR data…';
   document.body.append(fab);
 
+  const settingsBtn = document.createElement('button');
+  settingsBtn.id = 'codex-settings-btn';
+  settingsBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h.09A1.65 1.65 0 009 5.6V5a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h.09a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.09a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
+  settingsBtn.title = 'Settings';
+  document.body.append(settingsBtn);
+
   /* ---------------- OVERLAY/MODAL (built once) ---------------- */
   let overlay = null;
+  let settingsOverlay = null;
   const buildUI = () => {
     overlay = document.createElement('div');
     overlay.id = 'codex-overlay';
@@ -205,5 +229,50 @@
     fab.addEventListener('click', open);
   };
 
+  const buildSettingsUI = () => {
+    settingsOverlay = document.createElement('div');
+    settingsOverlay.id = 'codex-settings-overlay';
+
+    settingsOverlay.innerHTML = `
+      <div id="codex-settings-modal" role="dialog" aria-modal="true">
+        <button id="codex-settings-close" title="Close">×</button>
+        <h2 style="margin:0 0 6px;font-size:18px;color:var(--codex-text-primary);">Settings</h2>
+        <label class="codex-field">Gitlab Access Token
+          <input id="codex-token-input" type="text" autocomplete="off" />
+        </label>
+        <a id="codex-token-hint" href="https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html" target="_blank">How to get Access Token</a>
+        <div class="codex-actions">
+          <button id="codex-save-settings" class="codex-btn codex-primary">Save</button>
+        </div>
+      </div>`;
+
+    document.body.append(settingsOverlay);
+
+    const tokenInput = $('#codex-token-input');
+
+    const open = () => {
+      tokenInput.value = GM_getValue('gitlab_token','');
+      settingsOverlay.classList.add('open');
+      tokenInput.focus();
+      document.addEventListener('keydown', keyHandler);
+    };
+    const close = () => {
+      settingsOverlay.classList.remove('open');
+      document.removeEventListener('keydown', keyHandler);
+    };
+    const keyHandler = e => { if(e.key==='Escape') close(); };
+
+    $('#codex-settings-close').addEventListener('click', close);
+    settingsOverlay.addEventListener('click', e=>{ if(e.target===settingsOverlay) close(); });
+    $('#codex-save-settings').addEventListener('click', () => {
+      GM_setValue('gitlab_token', tokenInput.value.trim());
+      showToast('Settings saved','success');
+      close();
+    });
+
+    settingsBtn.addEventListener('click', open);
+  };
+
   fab.addEventListener('click', () => { if(!overlay) buildUI(); });
+  settingsBtn.addEventListener('click', () => { if(!settingsOverlay) buildSettingsUI(); });
 })();
