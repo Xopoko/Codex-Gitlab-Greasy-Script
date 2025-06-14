@@ -164,7 +164,7 @@
         if(err) return showToast('Error fetching magic ✨','error');
         try{
           const data = JSON.parse(resp.responseText);
-          const out = (Array.isArray(data)?data[0]:data) || {};
+          const out = (Array.isArray(data)?data[0]:data).output || {};
           if(out.title)  titleIn.value  = out.title;
           if(out.branch) branchIn.value = out.branch;
           validate();
