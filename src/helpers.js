@@ -17,4 +17,9 @@ function validate(titleEl, branchEl, textAreaEl, sendBtnEl) {
   sendBtnEl.disabled = !ok;
 }
 
-module.exports = { setLoading, validate, ensureFab };
+function keepFabAlive(fab, doc = document, interval = 1000) {
+  const id = setInterval(() => ensureFab(fab, doc), interval);
+  return id;
+}
+
+module.exports = { setLoading, validate, ensureFab, keepFabAlive };

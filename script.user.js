@@ -119,6 +119,10 @@
     }
   };
 
+  const keepFabAlive = () => {
+    setInterval(ensureFab, 1000);
+  };
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', ensureFab);
   } else {
@@ -126,6 +130,7 @@
   }
 
   new MutationObserver(ensureFab).observe(document, {childList: true, subtree: true});
+  keepFabAlive();
 
 
   /* ---------------- OVERLAY/MODAL (built once) ---------------- */
