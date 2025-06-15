@@ -119,6 +119,7 @@
   let settingsBtn;
   let openSettings;
   let settingsOverlay = null;
+  let openOverlay;
   const buildUI = () => {
     overlay = document.createElement('div');
     overlay.id = 'codex-overlay';
@@ -239,6 +240,7 @@
 
     /* ---- expose open() for FAB ---- */
     fab.addEventListener('click', open);
+    openOverlay = open;
   };
 
   const buildSettingsUI = () => {
@@ -285,5 +287,8 @@
     openSettings = open;
   };
 
-  fab.addEventListener('click', () => { if(!overlay) buildUI(); });
+  fab.addEventListener('click', () => {
+    if(!overlay) buildUI();
+    if(openOverlay) openOverlay();
+  });
 })();
