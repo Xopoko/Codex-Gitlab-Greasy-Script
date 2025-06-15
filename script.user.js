@@ -8,6 +8,7 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @run-at       document-idle
 // ==/UserScript==
 
 (() => {
@@ -111,7 +112,20 @@
       <ellipse cx="583.762" cy="585.298" rx="100.237" ry="100.203" fill="#0ABE98"/>
     </svg>`;
   fab.title = 'Send MR data…';
-  document.body.append(fab);
+
+  const ensureFab = () => {
+    if (document.body && !document.body.contains(fab)) {
+      document.body.append(fab);
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureFab);
+  } else {
+    ensureFab();
+  }
+
+  new MutationObserver(ensureFab).observe(document, {childList: true, subtree: true});
 
 
   /* ---------------- OVERLAY/MODAL (built once) ---------------- */

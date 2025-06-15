@@ -5,9 +5,16 @@ function setLoading(state, elements, loadingEl) {
   });
 }
 
+function ensureFab(fab, doc = document) {
+  if (!doc.body) return;
+  if (!doc.body.contains(fab)) {
+    doc.body.appendChild(fab);
+  }
+}
+
 function validate(titleEl, branchEl, textAreaEl, sendBtnEl) {
   const ok = titleEl.value.trim() && branchEl.value.trim() && textAreaEl.value.trim();
   sendBtnEl.disabled = !ok;
 }
 
-module.exports = { setLoading, validate };
+module.exports = { setLoading, validate, ensureFab };
