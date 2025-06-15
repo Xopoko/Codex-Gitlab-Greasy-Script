@@ -84,8 +84,16 @@
     #codex-toast.success{background:var(--codex-bg-accent)}
     #codex-toast.error{background:#d93025}
 
-    #codex-token-hint{color:#fff;font-size:12px;text-decoration:none}
-    #codex-token-hint:hover{text-decoration:underline}
+    #codex-token-hint,
+    #codex-github-token-hint {
+      color:#fff;
+      font-size:12px;
+      text-decoration:none;
+    }
+    #codex-token-hint:hover,
+    #codex-github-token-hint:hover {
+      text-decoration:underline;
+    }
   `);
 
   /* ---------------- HELPERS ---------------- */
