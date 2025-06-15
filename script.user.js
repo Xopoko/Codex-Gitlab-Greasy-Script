@@ -286,6 +286,10 @@
           <input id="codex-token-input" type="text" autocomplete="off" />
         </label>
         <a id="codex-token-hint" href="https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html" target="_blank">How to get Access Token</a>
+        <label class="codex-field">GitHub Token
+          <input id="codex-github-token-input" type="text" autocomplete="off" />
+        </label>
+        <a id="codex-github-token-hint" href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token" target="_blank">How to get GitHub Token</a>
         <div class="codex-actions">
           <button id="codex-save-settings" class="codex-btn codex-primary">Save</button>
         </div>
@@ -294,9 +298,11 @@
     document.body.append(settingsOverlay);
 
     const tokenInput = $('#codex-token-input');
+    const githubTokenInput = $('#codex-github-token-input');
 
     const open = () => {
       tokenInput.value = GM_getValue('gitlab_token','');
+      githubTokenInput.value = GM_getValue('github_token','');
       settingsOverlay.classList.add('open');
       tokenInput.focus();
       document.addEventListener('keydown', keyHandler);
@@ -311,6 +317,7 @@
     settingsOverlay.addEventListener('click', e=>{ if(e.target===settingsOverlay) close(); });
     $('#codex-save-settings').addEventListener('click', () => {
       GM_setValue('gitlab_token', tokenInput.value.trim());
+      GM_setValue('github_token', githubTokenInput.value.trim());
       showToast('Settings saved','success');
       close();
     });
