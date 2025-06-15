@@ -134,7 +134,7 @@
         <label class="codex-field">Branch Name
           <input id="codex-branch-input" type="text" placeholder="feature/my-awesome-branch" autocomplete="off" required />
         </label>
-        <label class="codex-field">Description
+        <label class="codex-field">Git patch
           <textarea id="codex-text" placeholder="Enter text…"></textarea>
         </label>
         <div class="codex-actions">
