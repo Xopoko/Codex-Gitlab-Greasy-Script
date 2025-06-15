@@ -17,4 +17,22 @@ function validate(titleEl, branchEl, textAreaEl, sendBtnEl) {
   sendBtnEl.disabled = !ok;
 }
 
-module.exports = { setLoading, validate, ensureFab };
+function watchNavigation(callback, win = window) {
+  const { history } = win;
+  const origPush = history.pushState;
+  const origReplace = history.replaceState;
+  const invoke = () => callback();
+  history.pushState = function (...args) {
+    const r = origPush.apply(this, args);
+    invoke();
+    return r;
+  };
+  history.replaceState = function (...args) {
+    const r = origReplace.apply(this, args);
+    invoke();
+    return r;
+  };
+  win.addEventListener('popstate', invoke);
+}
+
+module.exports = { setLoading, validate, ensureFab, watchNavigation };

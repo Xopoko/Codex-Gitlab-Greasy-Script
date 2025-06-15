@@ -119,6 +119,24 @@
     }
   };
 
+  const watchNavigation = () => {
+    const { history } = window;
+    const origPush = history.pushState;
+    const origReplace = history.replaceState;
+    const call = () => ensureFab();
+    history.pushState = function (...args) {
+      const r = origPush.apply(this, args);
+      call();
+      return r;
+    };
+    history.replaceState = function (...args) {
+      const r = origReplace.apply(this, args);
+      call();
+      return r;
+    };
+    window.addEventListener('popstate', call);
+  };
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', ensureFab);
   } else {
@@ -126,6 +144,7 @@
   }
 
   new MutationObserver(ensureFab).observe(document, {childList: true, subtree: true});
+  watchNavigation();
 
 
   /* ---------------- OVERLAY/MODAL (built once) ---------------- */
