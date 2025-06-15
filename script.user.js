@@ -55,6 +55,8 @@
 
     #codex-close{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--codex-text-primary);font-size:20px;cursor:pointer;line-height:1;}
     #codex-close:hover{color:#fff}
+    #codex-settings-close{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--codex-text-primary);font-size:20px;cursor:pointer;line-height:1;}
+    #codex-settings-close:hover{color:#fff}
 
     label.codex-field{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--codex-text-primary)}
     label.codex-field input,
