@@ -53,10 +53,8 @@
     #codex-settings-modal{background:var(--codex-bg-primary);border-radius:12px;padding:24px 20px;width:min(92vw,420px);box-shadow:0 8px 24px rgba(0,0,0,.9);display:flex;flex-direction:column;gap:14px;position:relative;transform:scale(.96);transition:.25s transform;}
     #codex-settings-overlay.open #codex-settings-modal{transform:scale(1)}
 
-    #codex-close{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--codex-text-primary);font-size:20px;cursor:pointer;line-height:1;}
-    #codex-close:hover{color:#fff}
-    #codex-settings-close{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--codex-text-primary);font-size:20px;cursor:pointer;line-height:1;}
-    #codex-settings-close:hover{color:#fff}
+    #codex-close, #codex-settings-close{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--codex-text-primary);font-size:20px;cursor:pointer;line-height:1;}
+    #codex-close:hover, #codex-settings-close:hover{color:#fff}
 
     label.codex-field{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--codex-text-primary)}
     label.codex-field input,
