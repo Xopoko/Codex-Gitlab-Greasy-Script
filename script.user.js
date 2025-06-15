@@ -290,14 +290,14 @@
       <div id="codex-settings-modal" role="dialog" aria-modal="true">
         <button id="codex-settings-close" title="Close">×</button>
         <h2 style="margin:0 0 6px;font-size:18px;color:var(--codex-text-primary);">Settings</h2>
-        <label class="codex-field">Gitlab Access Token
+        <label class="codex-field">GitLab Access Token
           <input id="codex-token-input" type="text" autocomplete="off" />
         </label>
-        <a id="codex-token-hint" href="https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html" target="_blank" rel="noopener noreferrer">How to get Access Token</a>
-        <label class="codex-field">GitHub Token
+        <a id="codex-token-hint" href="https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html" target="_blank" rel="noopener noreferrer">How to get GitLab Access Token?</a>
+        <label class="codex-field">GitHub Access Token
           <input id="codex-github-token-input" type="text" autocomplete="off" />
         </label>
-        <a id="codex-github-token-hint" href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token" target="_blank" rel="noopener noreferrer">How to get GitHub Token</a>
+        <a id="codex-github-token-hint" href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token" target="_blank" rel="noopener noreferrer">How to get GitHub Access Token?</a>
         <div class="codex-actions">
           <button id="codex-save-settings" class="codex-btn codex-primary">Save</button>
         </div>
