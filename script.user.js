@@ -140,9 +140,7 @@
         <div class="codex-actions">
           <button id="codex-send"  class="codex-btn codex-primary" disabled>Send (Ctrl+Enter)</button>
           <button id="codex-sync"  class="codex-btn codex-icon-btn" title="Sync (Ctrl+Y)">🔄</button>
-          <button id="codex-settings-btn" class="codex-btn codex-icon-btn" title="Settings">
-            <svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h.09A1.65 1.65 0 009 5.6V5a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h.09a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.09a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-          </button>
+          <button id="codex-settings-btn" class="codex-btn codex-icon-btn" title="Settings">⚙️</button>
         </div>
         <div id="codex-loading"></div>
       </div>`;
